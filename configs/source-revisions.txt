@@ -1,0 +1,5 @@
+ukl        f66efb6c11a8b47f1c3a8ad9c5ef5a794fc184f0
+ukl/linux  93f08d2f22baaf4d7c6f4c8fd3005c6d0c2271c2
+mqtt-c     7a986a68ebea63921d4aab20a9d1b26a8b5f8c9d
+upstream   linux-6.3.tar.xz sha256 ba3491f5ed6bd270a370c440434e3d69085fcdd528922fa01e73d7657db73b1e
+UKL commits on top of v6.3: 78
