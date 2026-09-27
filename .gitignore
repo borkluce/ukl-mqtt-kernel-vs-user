@@ -1,0 +1,4 @@
+src/
+build/out-*/
+build/initrd-work/
+artifacts/

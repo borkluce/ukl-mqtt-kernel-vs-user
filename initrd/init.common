@@ -1,0 +1,36 @@
+#!/bin/bash
+# Common init for all four configurations.
+# Derived from UKL initrd/init.in @ f66efb6c. Changes, applied to every configuration:
+#   - no in-guest HT/turbo scripts (they target the host CPU and do nothing useful in a VM)
+#   - no dropbear (logs come over the serial console; no background daemon)
+#   - publisher chosen by mode; start/end markers for the runner
+# Arguments after "--" on the kernel cmdline:
+#   $1 guest IP   $2 guest MAC   $3 mode (user|ukl)   $4 run ID
+export HOME=/root LOGNAME=root TERM=vt100
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+
+mount -t proc /proc /proc
+mount -t sysfs /sys /sys
+mount -t devtmpfs -o mode=0755 udev /dev
+[[ -e /dev/pts ]] || mkdir /dev/pts
+mount -t devpts devpts /dev/pts
+ln -sf /proc/mounts /etc/mtab
+
+IP=$1 MAC=$2 MODE=$3 RUN_ID=$4
+INF=$(/usr/sbin/ip -o link | awk -F ': ' -vIGNORECASE=1 '/'"$MAC"'/ { print $2 }')
+/usr/sbin/ip address flush dev "$INF"
+/usr/sbin/ip address add "$IP/24" brd + dev "$INF"
+/usr/sbin/ip link set "$INF" up
+
+echo -1 > /proc/sys/kernel/sched_rt_runtime_us
+sleep 5
+
+echo "RUN_START mode=$MODE run_id=$RUN_ID kernel=$(uname -r) uptime=$(cut -d' ' -f1 /proc/uptime)"
+case "$MODE" in
+  ukl)  /UKL "$RUN_ID" ;;                          # exec of /UKL triggers the embedded publisher
+  user) /usr/bin/mqtt-publisher "$RUN_ID" ;;
+  *)    echo "RUN_ERROR unknown mode '$MODE'"; false ;;
+esac
+# Normally not reached: the publisher idles after "UKL-MQTT-BENCH: done" and the launcher stops QEMU.
+# Reached only if the publisher exits early (e.g. connect failure).
+echo "RUN_END rc=$? uptime=$(cut -d' ' -f1 /proc/uptime)"
