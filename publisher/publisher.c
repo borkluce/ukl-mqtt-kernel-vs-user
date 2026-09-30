@@ -5,7 +5,8 @@
  * changes are measurement only:
  *   - run ID taken from argv[1] and carried in every payload next to the sequence number
  *   - publishes accepted inside the 30 s window counted separately from the final drain
- *   - per-second accepted counts, buffer-full periods and mqtt_sync errors recorded in
+ *   - per-second accepted counts, buffer-full periods (all counted and binned by duration,
+ *     periods >= 1 ms logged individually) and mqtt_sync errors recorded in
  *     memory during the window and printed only after it, so logging does not touch
  *     the measured period
  *   - MQTT connect/handshake timed separately (it is outside the window)
@@ -50,7 +51,10 @@
 static uint8_t sendbuf[65536];
 static uint8_t recvbuf[4096];
 
-/* In-memory records, printed after the window. Times are ns since the window start. */
+/* In-memory records, printed after the window. Times are ns since the window start.
+ * Every buffer-full period is counted and binned by duration; start/end times are kept
+ * only for periods of at least LONG_FULL_NS, which are the pauses worth inspecting. */
+#define LONG_FULL_NS    1000000LL   /* 1 ms */
 struct full_event { long long start_ns, end_ns; };
 struct sync_error { long long t_ns; int code; int phase; };   /* phase 0 = window, 1 = drain */
 
@@ -59,6 +63,25 @@ static struct sync_error sync_errors[MAX_SYNC_ERRORS];
 static long accepted_per_second[MAX_SECONDS];
 static int n_full_events, n_sync_errors;
 static long full_events_dropped, sync_errors_dropped;
+static long full_periods, full_hist[6];      /* <10us <100us <1ms <10ms <100ms >=100ms */
+static long long full_total_ns;
+
+static void close_full_period(long long start_ns, long long end_ns) {
+    long long d = end_ns - start_ns;
+    full_periods++;
+    full_total_ns += d;
+    full_hist[d < 10000LL ? 0 : d < 100000LL ? 1 : d < 1000000LL ? 2 :
+              d < 10000000LL ? 3 : d < 100000000LL ? 4 : 5]++;
+    if (d >= LONG_FULL_NS) {
+        if (n_full_events < MAX_FULL_EVENTS) {
+            full_events[n_full_events].start_ns = start_ns;
+            full_events[n_full_events].end_ns = end_ns;
+            n_full_events++;
+        } else {
+            full_events_dropped++;
+        }
+    }
+}
 
 static int connect_broker(const char *addr, int port) {
     int s = socket(AF_INET, SOCK_STREAM, 0);
@@ -138,6 +161,7 @@ int main(int argc, char *argv[]) {
     long long payload_bytes = 0;
     int payload_min = 1 << 30, payload_max = 0;
     int in_full = 0, stopped_on_error = 0, stop_code = 0;
+    long long full_start_ns = 0;
     long i = 0;
     long long now_ns = 0;
     const long long window_ns = (long long)DURATION_SEC * 1000000000LL;
@@ -157,7 +181,7 @@ int main(int argc, char *argv[]) {
                                           MQTT_PUBLISH_QOS_0);
         if (rc == MQTT_OK) {
             if (in_full) {
-                full_events[n_full_events - 1].end_ns = now_ns;
+                close_full_period(full_start_ns, now_ns);
                 in_full = 0;
             }
             accepted++;
@@ -169,14 +193,8 @@ int main(int argc, char *argv[]) {
         } else if (rc == MQTT_ERROR_SEND_BUFFER_IS_FULL) {
             full_returns++;
             if (!in_full) {
-                if (n_full_events < MAX_FULL_EVENTS) {
-                    full_events[n_full_events].start_ns = now_ns;
-                    full_events[n_full_events].end_ns = -1;
-                    n_full_events++;
-                    in_full = 1;
-                } else {
-                    full_events_dropped++;
-                }
+                full_start_ns = now_ns;
+                in_full = 1;
             }
         } else {
             stopped_on_error = 1;
@@ -189,7 +207,8 @@ int main(int argc, char *argv[]) {
         if (recover && client.error == MQTT_ERROR_SEND_BUFFER_IS_FULL) client.error = MQTT_OK;
     }
     long long window_end_ns = now_ns;
-    if (in_full) full_events[n_full_events - 1].end_ns = window_end_ns;   /* still full at window end */
+    const int full_open_at_end = in_full;
+    if (in_full) close_full_period(full_start_ns, window_end_ns);   /* still full at window end */
 
     /* final drain: same 200 syncs as the thesis, now timed and reported separately */
     struct timespec t_d0, t_d1;
@@ -221,9 +240,14 @@ int main(int argc, char *argv[]) {
         if (s < DURATION_SEC || accepted_per_second[s])
             printf(LOG "SECOND run_id=%s s=%d accepted=%ld\n", run_id, s, accepted_per_second[s]);
     }
+    printf(LOG "BUFFULL_SUMMARY run_id=%s periods=%ld total_us=%lld lt10us=%ld lt100us=%ld "
+           "lt1ms=%ld lt10ms=%ld lt100ms=%ld ge100ms=%ld open_at_window_end=%d\n",
+           run_id, full_periods, full_total_ns / 1000, full_hist[0], full_hist[1],
+           full_hist[2], full_hist[3], full_hist[4], full_hist[5], full_open_at_end);
     for (int e = 0; e < n_full_events; e++) {
-        printf(LOG "BUFFULL run_id=%s start_us=%lld end_us=%lld\n", run_id,
-               full_events[e].start_ns / 1000, full_events[e].end_ns / 1000);
+        printf(LOG "BUFFULL run_id=%s start_us=%lld end_us=%lld dur_us=%lld\n", run_id,
+               full_events[e].start_ns / 1000, full_events[e].end_ns / 1000,
+               (full_events[e].end_ns - full_events[e].start_ns) / 1000);
     }
     for (int e = 0; e < n_sync_errors; e++) {
         printf(LOG "SYNCERR run_id=%s t_us=%lld code=%d phase=%s\n", run_id,
@@ -232,7 +256,7 @@ int main(int argc, char *argv[]) {
     }
     printf(LOG "DRAIN run_id=%s syncs=%d drain_us=%lld errors=%ld unsent_after_drain=%ld\n",
            run_id, DRAIN_SYNCS, ns_since(t_d0, t_d1) / 1000, drain_errors, unsent_after_drain);
-    printf(LOG "RECORDS run_id=%s buffull_events=%d buffull_dropped=%ld "
+    printf(LOG "RECORDS run_id=%s buffull_long_logged=%d buffull_long_dropped=%ld "
            "sync_errors=%d sync_errors_dropped=%ld\n",
            run_id, n_full_events, full_events_dropped, n_sync_errors, sync_errors_dropped);
     /* Kept for continuity with the thesis logs; now window-only (drain excluded). */
