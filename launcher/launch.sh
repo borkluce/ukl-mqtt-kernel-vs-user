@@ -16,8 +16,9 @@ QEMU_CPUS=${QEMU_CPUS:?set QEMU_CPUS to the P-core(s) reserved for the guest, e.
 TIMEOUT=${TIMEOUT:-120}             # hard stop; a timed-out run is kept and labelled
 DONE_MARKER="UKL-MQTT-BENCH: done"
 
+ip link del "$TAPDEV" 2>/dev/null || true
 ip tuntap add dev "$TAPDEV" mode tap
-cleanup() { [ -n "${QPID:-}" ] && kill "$QPID" 2>/dev/null; ip tuntap del dev "$TAPDEV" mode tap 2>/dev/null || true; }
+cleanup() { [ -n "${QPID:-}" ] && kill "$QPID" 2>/dev/null || true; ip tuntap del dev "$TAPDEV" mode tap 2>/dev/null || true; }
 trap cleanup EXIT
 ip link set "$TAPDEV" master "$BRIDGE"
 ip link set "$TAPDEV" up
