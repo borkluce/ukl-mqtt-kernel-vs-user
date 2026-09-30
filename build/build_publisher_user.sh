@@ -11,5 +11,5 @@ mkdir -p "$OUT"
 gcc $CFLAGS_USER -static -I"$MQTTC/include" \
   -o "$OUT/mqtt-publisher" \
   "$ROOT/publisher/publisher.c" "$MQTTC/src/mqtt.c" "$MQTTC/src/mqtt_pal.c" -lpthread
-{ echo "CFLAGS_USER=$CFLAGS_USER"; gcc --version | head -1; ldd --version | head -1; } > "$OUT/build-info.txt"
+{ echo "CFLAGS_USER=$CFLAGS_USER"; gcc --version | sed -n 1p; ldd --version | sed -n 1p; } > "$OUT/build-info.txt"
 sha256sum "$OUT/mqtt-publisher" | tee "$OUT/SHA256"
