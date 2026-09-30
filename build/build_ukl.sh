@@ -10,6 +10,8 @@ cp "$MQTTC/src/mqtt.c" "$MQTTC/src/mqtt_pal.c" hello/
 cp "$MQTTC/include/mqtt.h" "$MQTTC/include/mqtt_pal.h" hello/
 cp "$ROOT/publisher/publisher.c" hello/hello-world.c
 cp "$ROOT/publisher/Makefile.am.ukl" hello/Makefile.am
+# The top-level Makefile does not track hello/ sources: force UKL.a and the kernel to relink.
+rm -f hello/*.o hello/UKL.a UKL.a
 
 autoreconf -i
 # Base UKL: every performance-oriented option explicitly off, as in the thesis build.
@@ -22,4 +24,4 @@ cp vmlinuz "$OUT/vmlinuz"
 cp linux/.config "$ROOT/configs/ukl.config"
 sha256sum "$OUT/vmlinuz" | tee "$OUT/SHA256"
 echo "Embedded publisher compile line (use its -O level for the user-space build):"
-grep -E 'gcc .*hello-world\.c' "$OUT/build.log" | head -1 || true
+grep -m1 -E 'gcc .*hello-world\.c' "$OUT/build.log" || { echo "ERROR: embedded publisher was not recompiled" >&2; exit 1; }
