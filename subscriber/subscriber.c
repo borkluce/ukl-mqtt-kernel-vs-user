@@ -1,6 +1,6 @@
 /* Subscriber logger for one run. Runs on the host, pinned to its own core.
  *
- * usage: mqtt-subscriber <broker_ip> <run_id> <out_dir> [--count-only]
+ * usage: mqtt-subscriber <broker_ip> <run_id> <out_dir> [--count-only | --sys-only]
  *
  * Subscribes to the publisher topic and to the broker's $SYS publish counters, and keeps
  * all records in memory until SIGINT/SIGTERM, then writes them to <out_dir>:
@@ -11,6 +11,8 @@
  *   gaps.csv     every gap of >= 1 ms between consecutive arrivals, with the seq around it
  * --count-only keeps only the counters (used in the pilot to check that the full logging
  * does not slow the subscriber down).
+ * --sys-only does not subscribe to the publisher topic at all and records only the broker's
+ * $SYS counters, so no subscriber traffic competes with the publisher.
  * Arrival times are CLOCK_MONOTONIC on the host; they are only compared with each other.
  */
 #define _GNU_SOURCE
@@ -35,7 +37,7 @@ struct gap { long long at_ms_x1000; long long gap_us; long seq_before, seq_after
 static volatile sig_atomic_t stop;
 static const char *run_id;
 static size_t run_id_len;
-static int count_only;
+static int count_only, sys_only;
 
 static long long received, for_run, other_run, unparsable;
 static long long first_ns, last_ns, prev_ns;
@@ -144,8 +146,11 @@ int main(int argc, char *argv[]) {
     run_id = argv[2];
     run_id_len = strlen(run_id);
     count_only = (argc > 4 && strcmp(argv[4], "--count-only") == 0);
+    sys_only = (argc > 4 && strcmp(argv[4], "--sys-only") == 0);
+    const char *mode = sys_only ? "sys-only" : count_only ? "count-only" : "full";
+    const int full = !count_only && !sys_only;
 
-    if (!count_only) {
+    if (full) {
         per_ms = calloc(MAX_MS, sizeof(*per_ms));
         seen = calloc(SEQ_BITS / 8, 1);
         gaps = calloc(MAX_GAPS, sizeof(*gaps));
@@ -166,9 +171,9 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "connect to %s failed\n", broker);
         return 1;
     }
-    mosquitto_subscribe(m, NULL, TOPIC, 0);
+    if (!sys_only) mosquitto_subscribe(m, NULL, TOPIC, 0);
     mosquitto_subscribe(m, NULL, SYS_TOPIC, 0);
-    printf("SUBSCRIBER_READY run_id=%s mode=%s\n", run_id, count_only ? "count-only" : "full");
+    printf("SUBSCRIBER_READY run_id=%s mode=%s\n", run_id, mode);
     fflush(stdout);
 
     while (!stop) {
@@ -188,11 +193,11 @@ int main(int argc, char *argv[]) {
                    ru.ru_stime.tv_sec + ru.ru_stime.tv_usec / 1e6;
 
     FILE *f = open_out(out_dir, "summary.txt");
-    fprintf(f, "run_id=%s\nmode=%s\n", run_id, count_only ? "count-only" : "full");
+    fprintf(f, "run_id=%s\nmode=%s\n", run_id, mode);
     fprintf(f, "received_total=%lld\nreceived_this_run=%lld\nreceived_other_runs=%lld\nunparsable=%lld\n",
             received, for_run, other_run, unparsable);
     fprintf(f, "arrival_span_us=%lld\n", first_ns ? (last_ns - first_ns) / 1000 : 0);
-    if (!count_only) {
+    if (full) {
         fprintf(f, "unique_seq=%lld\nmax_seq=%lld\nmissing_up_to_max_seq=%lld\n",
                 unique, max_seq, max_seq >= 0 ? (max_seq + 1) - unique : 0);
         fprintf(f, "duplicates=%lld\nseq_backwards=%lld\nseq_overflow=%lld\n",
@@ -205,7 +210,7 @@ int main(int argc, char *argv[]) {
     fprintf(f, "subscriber_cpu_s=%.3f\n", cpu_s);
     fclose(f);
 
-    if (!count_only) {
+    if (full) {
         long last = -1;
         for (long i = 0; i < MAX_MS; i++) if (per_ms[i]) last = i;
         f = open_out(out_dir, "per_ms.csv");
