@@ -1,0 +1,2 @@
+SUBSCRIBER_READY run_id=try5-c1-cpu mode=sys-only
+SUBSCRIBER_DONE run_id=try5-c1-cpu received_this_run=0

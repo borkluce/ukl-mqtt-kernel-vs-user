@@ -1,0 +1,2 @@
+SUBSCRIBER_READY run_id=try3-c4-sysonly mode=sys-only
+SUBSCRIBER_DONE run_id=try3-c4-sysonly received_this_run=0

@@ -1,0 +1,14 @@
+run_id=try3-c4-sysonly
+mode=sys-only
+received_total=0
+received_this_run=0
+received_other_runs=0
+unparsable=0
+arrival_span_us=0
+broker_received_start=0
+broker_received_end=21834912
+broker_sent_start=0
+broker_sent_end=40
+broker_dropped_start=0
+broker_dropped_end=0
+subscriber_cpu_s=0.030
