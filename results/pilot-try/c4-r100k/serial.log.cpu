@@ -1,0 +1,11 @@
+CPU_SNAPSHOT label=start t=1792362976.095121783 tid=23689 oncpu_ns=30525277 utime_ticks=1 stime_ticks=1 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=start t=1792362976.095121783 tid=23694 oncpu_ns=2317248 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=call_rcu
+CPU_SNAPSHOT label=start t=1792362976.095121783 tid=23695 oncpu_ns=1217396788 utime_ticks=111 stime_ticks=9 last_cpu=2 comm=CPU 0/KVM
+CPU_SNAPSHOT label=start t=1792362976.095121783 tid=23697 oncpu_ns=2782 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=kvm-nx-lpage-re
+VHOST_THREADS label=start count=0
+CPU_SNAPSHOT label=end t=1792363006.103128487 tid=23689 oncpu_ns=2105986187 utime_ticks=77 stime_ticks=132 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=end t=1792363006.103128487 tid=23694 oncpu_ns=2317248 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=call_rcu
+CPU_SNAPSHOT label=end t=1792363006.103128487 tid=23695 oncpu_ns=8028712551 utime_ticks=495 stime_ticks=307 last_cpu=2 comm=CPU 0/KVM
+CPU_SNAPSHOT label=end t=1792363006.103128487 tid=23697 oncpu_ns=2782 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=kvm-nx-lpage-re
+VHOST_THREADS label=end count=0
+CPU_SUMMARY wall_s=30.008 vcpu_s=6.811 qemu_total_s=8.887 qemu_other_s=2.075 vhost_threads=0

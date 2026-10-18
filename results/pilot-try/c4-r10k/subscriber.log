@@ -1,0 +1,2 @@
+SUBSCRIBER_READY run_id=c4-r10k mode=sys-only
+SUBSCRIBER_DONE run_id=c4-r10k received_this_run=0

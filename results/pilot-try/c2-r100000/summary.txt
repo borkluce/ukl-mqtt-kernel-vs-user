@@ -1,0 +1,14 @@
+run_id=c2-r100000
+mode=sys-only
+received_total=0
+received_this_run=0
+received_other_runs=0
+unparsable=0
+arrival_span_us=0
+broker_received_start=10199814
+broker_received_end=13199740
+broker_sent_start=395
+broker_sent_end=435
+broker_dropped_start=0
+broker_dropped_end=0
+subscriber_cpu_s=0.031

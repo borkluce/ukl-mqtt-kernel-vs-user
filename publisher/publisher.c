@@ -1,8 +1,8 @@
 /* MQTT throughput benchmark publisher (fixed-time window), instrumented.
  *
  * Built twice from this file: embedded in the UKL kernel (configuration 4) and as a
- * static user-space binary (configurations 1-3). The publish loop is the thesis loop;
- * changes are measurement only:
+ * static user-space binary (configurations 1-3). Unpaced, the publish loop is the thesis
+ * loop. Changes:
  *   - run ID taken from argv[1] and carried in every payload next to the sequence number
  *   - publishes accepted inside the 30 s window counted separately from the final drain
  *   - per-second accepted counts, buffer-full periods (all counted and binned by duration,
@@ -15,8 +15,23 @@
  *               in client.error once set and mqtt_publish returns it without retrying, so the
  *               first buffer-full event stops publishing for the rest of the window.
  *       recover identical, except that after each mqtt_sync a buffer-full error is cleared,
- *               so publishing resumes once the queue has drained. Every buffer-full period
- *               is still recorded.
+ *               so publishing resumes once the queue has drained. Only that one error code is
+ *               cleared; any other error still stops the run. Each clear is counted
+ *               (recovery_events). Every buffer-full period is still recorded.
+ *     Why the thesis loop stops (MQTT-C 7a986a6, src/mqtt.c): MQTT_CLIENT_TRY_PACK sets
+ *     client->error = MQTT_ERROR_SEND_BUFFER_IS_FULL when the queue has no room (l. 225) and,
+ *     on every later call, returns client->error without trying to pack while it is negative
+ *     (l. 208). __mqtt_send keeps sending queued messages despite this error (l. 516), so the
+ *     queue drains, but the error is only reset by the reconnect path in mqtt_sync (l. 40-55),
+ *     which needs a reconnect callback; mqtt_init sets none (l. 146).
+ *   - rate from argv[3]:
+ *       absent or "max"  unpaced: publish one message, then mqtt_sync, as fast as possible
+ *                        (the thesis loop).
+ *       N >= 0           paced at N messages per second. The loop wakes every TICK_NS with
+ *                        clock_nanosleep(TIMER_ABSTIME), publishes the messages that are due
+ *                        by then (a small batch at high rates), calls mqtt_sync once and goes
+ *                        back to sleep. N = 0 is the idle run: same wake-ups and syncs, no
+ *                        publishes. No busy-waiting at any rate.
  * The "done, idling" line stays last: the launcher stops QEMU when it sees it.
  */
 #include <stdio.h>
@@ -47,6 +62,8 @@
 #define MAX_SYNC_ERRORS 1024
 #define MAX_SECONDS     (DURATION_SEC + 1)
 #define LOG             "UKL-MQTT-BENCH: "
+#define TICK_NS         1000000LL   /* paced mode: 1 ms between wake-ups */
+#define MAX_RATE        5000000L
 
 static uint8_t sendbuf[65536];
 static uint8_t recvbuf[4096];
@@ -119,10 +136,24 @@ static void idle_forever(void) {
 }
 
 int main(int argc, char *argv[]) {
+    /* Line-buffered output: the launcher finds the window start/end from these lines.
+     * Nothing is printed inside the window, so this does not touch the measurement. */
+    setvbuf(stdout, NULL, _IOLBF, 0);
     const char *run_id = (argc > 1 && argv[1][0]) ? argv[1] : "none";
     const int recover = (argc > 2 && strcmp(argv[2], "recover") == 0);
-    printf(LOG "starting, run_id=%s loop=%s duration=%d sec\n",
-           run_id, recover ? "recover" : "thesis", DURATION_SEC);
+    const int paced = (argc > 3 && argv[3][0] && strcmp(argv[3], "max") != 0);
+    const long rate = paced ? atol(argv[3]) : -1;
+    if (paced && (rate < 0 || rate > MAX_RATE)) {
+        printf(LOG "bad rate '%s'\n", argv[3]);
+        printf(LOG "done, idling\n");
+        idle_forever();
+        return 1;
+    }
+    char rate_str[24];
+    if (paced) snprintf(rate_str, sizeof(rate_str), "%ld", rate);
+    else snprintf(rate_str, sizeof(rate_str), "max");
+    printf(LOG "starting, run_id=%s loop=%s rate=%s duration=%d sec\n",
+           run_id, recover ? "recover" : "thesis", rate_str, DURATION_SEC);
 
     struct timespec t_conn0, t_conn1;
     clock_gettime(CLOCK_MONOTONIC, &t_conn0);
@@ -166,12 +197,24 @@ int main(int argc, char *argv[]) {
     long long now_ns = 0;
     const long long window_ns = (long long)DURATION_SEC * 1000000000LL;
 
+    long recovery_events = 0, ticks = 0, late_ticks = 0;
+    long long lateness_sum_ns = 0, lateness_max_ns = 0, due = 0;
+    struct timespec next_tick;
+
     clock_gettime(CLOCK_MONOTONIC, &t_start);
+    next_tick = t_start;
     for (;;) {
         clock_gettime(CLOCK_MONOTONIC, &t_now);
         now_ns = ns_since(t_start, t_now);
         if (now_ns >= window_ns) break;
 
+        /* unpaced: one publish per pass (thesis loop); paced: everything due by now */
+        long batch = 1;
+        if (paced) {
+            due = (long long)rate * now_ns / 1000000000LL;
+            batch = (long)(due - accepted);
+        }
+        for (long b = 0; b < batch; b++) {
         int len = snprintf(payload, sizeof(payload),
                            "{\"run\":\"%s\",\"seq\":%ld,\"temp\":%ld,\"humidity\":%ld}",
                            run_id, i, 20 + (i % 10), 50 + (i % 30));
@@ -196,15 +239,38 @@ int main(int argc, char *argv[]) {
                 full_start_ns = now_ns;
                 in_full = 1;
             }
+            break;              /* queue full: stop this batch, sync, try again later */
         } else {
             stopped_on_error = 1;
             stop_code = rc;
             break;
         }
+        }
+        if (stopped_on_error) break;
         /* drive both send and receive */
         enum MQTTErrors src = mqtt_sync(&client);
         if (src != MQTT_OK) record_sync_error(now_ns, src, 0);
-        if (recover && client.error == MQTT_ERROR_SEND_BUFFER_IS_FULL) client.error = MQTT_OK;
+        if (recover && client.error == MQTT_ERROR_SEND_BUFFER_IS_FULL) {
+            client.error = MQTT_OK;     /* clears only this error code */
+            recovery_events++;
+        }
+
+        if (paced) {            /* sleep until the next tick (absolute, so no drift) */
+            next_tick.tv_nsec += TICK_NS;
+            while (next_tick.tv_nsec >= 1000000000L) { next_tick.tv_nsec -= 1000000000L; next_tick.tv_sec++; }
+            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_tick, NULL);
+            clock_gettime(CLOCK_MONOTONIC, &t_now);
+            long long late = ns_since(next_tick, t_now);
+            ticks++;
+            if (late > 0) {
+                lateness_sum_ns += late;
+                if (late > lateness_max_ns) lateness_max_ns = late;
+                if (late >= TICK_NS) {
+                    late_ticks++;
+                    next_tick = t_now;  /* fell a whole tick behind: resync, the backlog is still due */
+                }
+            }
+        }
     }
     long long window_end_ns = now_ns;
     const int full_open_at_end = in_full;
@@ -231,6 +297,12 @@ int main(int argc, char *argv[]) {
 
     /* ---- report (everything below is outside the measured window) ---- */
     double window_s = window_end_ns / 1e9;
+    if (paced) due = (long long)rate * window_end_ns / 1000000000LL;
+    printf(LOG "PACING run_id=%s rate=%s requested=%lld achieved_per_s=%.1f backlog_at_end=%lld "
+           "ticks=%ld late_ticks=%ld lateness_mean_us=%.1f lateness_max_us=%lld recovery_events=%ld\n",
+           run_id, rate_str, paced ? due : -1LL, window_s > 0 ? accepted / window_s : 0.0,
+           paced ? due - accepted : -1LL, ticks, late_ticks,
+           ticks ? lateness_sum_ns / 1000.0 / ticks : 0.0, lateness_max_ns / 1000, recovery_events);
     printf(LOG "WINDOW run_id=%s loop=%s accepted=%ld attempts=%ld buffer_full_returns=%ld "
            "window_ns=%lld payload_bytes=%lld payload_min=%d payload_max=%d "
            "stopped_on_error=%d stop_code=%d\n",
