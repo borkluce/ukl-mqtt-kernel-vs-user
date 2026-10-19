@@ -1,0 +1,21 @@
+CPU_SNAPSHOT label=start t=1792448639.826413611 tid=27116 oncpu_ns=49533539 utime_ticks=2 stime_ticks=2 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=start t=1792448639.826413611 tid=27121 oncpu_ns=3973304 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=start t=1792448639.826413611 tid=27123 oncpu_ns=2176503678 utime_ticks=197 stime_ticks=19 last_cpu=2 comm=CPU 0/KVM
+CPU_SNAPSHOT label=start t=1792448639.826413611 tid=27125 oncpu_ns=3987 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=kvm-nx-lpage-re
+VHOST_THREADS label=start count=0
+PROCSTAT label=start t=1792448639.826413611 cpu2 38845 1714 8267 269258 1807 0 43 0 708 0
+PROCSTAT label=start t=1792448639.826413611 cpu3 16920 620 5756 296213 1904 0 100 0 0 0
+PROCSTAT label=start t=1792448639.826413611 cpu4 38856 1698 9570 266032 3292 0 48 0 0 0
+PROCSTAT label=start t=1792448639.826413611 cpu6 38669 1753 9230 267618 2285 0 138 0 0 0
+CPU_SNAPSHOT label=end t=1792448669.859687268 tid=27116 oncpu_ns=2642589876 utime_ticks=106 stime_ticks=157 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=end t=1792448669.859687268 tid=27121 oncpu_ns=3973304 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=end t=1792448669.859687268 tid=27123 oncpu_ns=11772154814 utime_ticks=1039 stime_ticks=137 last_cpu=2 comm=CPU 0/KVM
+CPU_SNAPSHOT label=end t=1792448669.859687268 tid=27125 oncpu_ns=3987 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=kvm-nx-lpage-re
+VHOST_THREADS label=end count=0
+PROCSTAT label=end t=1792448669.859687268 cpu2 38849 1714 8275 271259 1807 0 43 0 710 0
+PROCSTAT label=end t=1792448669.859687268 cpu3 16920 620 5756 299216 1904 0 100 0 0 0
+PROCSTAT label=end t=1792448669.859687268 cpu4 38888 1699 9636 267948 3292 0 48 0 0 0
+PROCSTAT label=end t=1792448669.859687268 cpu6 38673 1754 9240 270311 2285 0 160 0 0 0
+CPU_SUMMARY wall_s=30.033 vcpu_s=9.596 qemu_total_s=12.189 qemu_other_s=2.593 vhost_threads=0
+CPU_BUSY cpu6=1.4% cpu2=0.6% cpu3=0.0% cpu4=4.9%
+PERF_SUMMARY guest_cycles=0 guest_instr=0 host_cycles=0 host_instr=0 vcpu_ghz=0.000

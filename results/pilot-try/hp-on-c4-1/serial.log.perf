@@ -1,0 +1,10 @@
+# started on Mon Oct 19 23:45:00 2026
+
+<not counted>,,cpu_atom/cycles/G,0,0.00,,
+6212000111,,cpu_core/cycles/G,8914738184,100.00,,
+<not counted>,,cpu_atom/instructions/G,0,0.00,,
+18028250440,,cpu_core/instructions/G,8914743908,100.00,,
+<not counted>,,cpu_atom/cycles/H,0,0.00,,
+9763399730,,cpu_core/cycles/H,8914751728,100.00,,
+<not counted>,,cpu_atom/instructions/H,0,0.00,,
+17215221884,,cpu_core/instructions/H,8914757996,100.00,,

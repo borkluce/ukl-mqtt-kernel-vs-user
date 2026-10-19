@@ -20,7 +20,9 @@ The publisher source (`publisher/publisher.c`) is the thesis version; both build
 3. `build/in_container.sh build/build_upstream.sh`
 4. `build/in_container.sh build/build_publisher_user.sh`
 5. On the host: `build/build_initrd.sh`
-6. On the host, once per boot: `sudo launcher/setup_bridge.sh`, then start Mosquitto on 192.168.150.1:1883
+6. On the host, once per boot: `sudo launcher/host_tune.sh apply` (fixed CPU clock, turbo off, services
+   off the experiment cores), `sudo launcher/setup_bridge.sh`, then start Mosquitto on CPU 4:
+   `taskset -c 4 mosquitto -c launcher/mosquitto.conf`
 7. Smoke test each row of the table, e.g.
    `sudo VCPU_CPU=2 EMU_CPU=6 LOOP=recover RATE=10000 launcher/launch.sh artifacts/ukl/vmlinuz artifacts/common-initrd.cpio.xz ukl smoke-01 results/smoke/smoke-01.serial`
 
@@ -32,8 +34,11 @@ The publisher source (`publisher/publisher.c`) is the thesis version; both build
 | `RATE` | `max` (unpaced) or messages per second; `0` is the idle run |
 | `VCPU_CPU` | host CPU for the guest vCPU thread |
 | `EMU_CPU` | host CPU for all other QEMU threads (main loop, virtio-net backend) |
+| `MONITOR_CPUS` | host CPUs whose busy share is recorded (default `VCPU_CPU EMU_CPU`) |
+| `PERF` | `1` (default): count vCPU-thread cycles and instructions (guest and host mode) with perf |
 
 The launcher writes the guest serial log and, next to it, `<log>.cpu` with per-thread QEMU CPU time
-at the start and end of the publisher window and a `CPU_SUMMARY` line.
+at the start and end of the publisher window, followed by `CPU_SUMMARY`, `CPU_BUSY` and `PERF_SUMMARY`
+lines (raw perf output in `<log>.perf`).
 
 Every kernel `.config`, the diffs between them and all SHA256 sums are written to `configs/` and `artifacts/`.
