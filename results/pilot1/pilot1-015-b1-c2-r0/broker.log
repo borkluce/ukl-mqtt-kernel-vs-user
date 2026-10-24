@@ -1,0 +1,8 @@
+1792878579: New connection from 192.168.150.1:46264 on port 1883.
+1792878579: New client connected from 192.168.150.1:46264 as auto-09AD9AFA-E6E6-66FE-B874-D13E15BAD0CD (p2, c1, k60).
+1792878579: Client auto-09AD9AFA-E6E6-66FE-B874-D13E15BAD0CD disconnected.
+1792878579: New connection from 192.168.150.1:46266 on port 1883.
+1792878579: New client connected from 192.168.150.1:46266 as sub-logger (p2, c1, k60).
+1792878588: New connection from 192.168.150.128:54766 on port 1883.
+1792878588: New client connected from 192.168.150.128:54766 as ukl-publisher (p2, c1, k400).
+1792878621: Client sub-logger disconnected.

@@ -1,0 +1,8 @@
+1792880057: New connection from 192.168.150.1:41082 on port 1883.
+1792880057: New client connected from 192.168.150.1:41082 as auto-D1946F31-0A21-0FB5-3842-7A488208C829 (p2, c1, k60).
+1792880057: Client auto-D1946F31-0A21-0FB5-3842-7A488208C829 disconnected.
+1792880057: New connection from 192.168.150.1:41098 on port 1883.
+1792880057: New client connected from 192.168.150.1:41098 as sub-logger (p2, c1, k60).
+1792880066: New connection from 192.168.150.128:33274 on port 1883.
+1792880066: New client connected from 192.168.150.128:33274 as ukl-publisher (p2, c1, k400).
+1792880099: Client sub-logger disconnected.

@@ -1,0 +1,2 @@
+SUBSCRIBER_READY run_id=pilot1-021-b2-c1-r1000 mode=sys-only
+SUBSCRIBER_DONE run_id=pilot1-021-b2-c1-r1000 received_this_run=0

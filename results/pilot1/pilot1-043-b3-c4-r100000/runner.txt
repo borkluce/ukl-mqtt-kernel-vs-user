@@ -1,0 +1,2 @@
+n=43 block=3 config=c4 mode=ukl rate=100000 kernel=artifacts/ukl/vmlinuz start=2026-10-24T23:11:54+01:00
+launcher_rc=0 end=2026-10-24T23:12:36+01:00

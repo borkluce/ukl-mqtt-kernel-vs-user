@@ -1,0 +1,30 @@
+HOST schedstat_version=17 halt_poll_ns=0 governor=performance cur_khz=2000000 no_turbo=1
+CPU_SNAPSHOT label=start t=1792877968.733066815 tid=24995 oncpu_ns=44358494 utime_ticks=2 stime_ticks=2 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=start t=1792877968.733066815 tid=25000 oncpu_ns=3453619 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=start t=1792877968.733066815 tid=25001 oncpu_ns=2160842077 utime_ticks=197 stime_ticks=18 last_cpu=2 comm=CPU 0/KVM
+CPU_SNAPSHOT label=start t=1792877968.733066815 tid=25003 oncpu_ns=8644 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=kvm-nx-lpage-re
+VHOST_THREADS label=start count=0
+SCHEDSTAT label=start t=1792877968.733066815 cpu2 0 0 0 0 0 0 119399028813 20456799792 820464
+SCHEDSTAT label=start t=1792877968.733066815 cpu3 0 0 0 0 0 0 43523080099 20587152866 416444
+SCHEDSTAT label=start t=1792877968.733066815 cpu4 0 0 0 0 0 0 121699573509 3635084666 652469
+SCHEDSTAT label=start t=1792877968.733066815 cpu6 0 0 0 0 0 0 97131522772 4746103866 681742
+PROC_SNAPSHOT label=start t=1792877968.733066815 name=broker pid=24967 oncpu_ns=8063693
+PROC_SNAPSHOT label=start t=1792877968.733066815 name=subscriber pid=24971 oncpu_ns=7605045
+KVMSTAT label=start exits=na halt_exits=na halt_wakeup=na halt_attempted_poll=na halt_successful_poll=na halt_poll_invalid=na halt_poll_success_ns=na halt_poll_fail_ns=na halt_wait_ns=na irq_injections=na
+CPU_SNAPSHOT label=end t=1792877998.778929990 tid=24995 oncpu_ns=125428019 utime_ticks=3 stime_ticks=8 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=end t=1792877998.778929990 tid=25000 oncpu_ns=3453619 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=qemu-system-x86
+CPU_SNAPSHOT label=end t=1792877998.778929990 tid=25001 oncpu_ns=3089778848 utime_ticks=250 stime_ticks=58 last_cpu=2 comm=CPU 0/KVM
+CPU_SNAPSHOT label=end t=1792877998.778929990 tid=25003 oncpu_ns=8644 utime_ticks=0 stime_ticks=0 last_cpu=6 comm=kvm-nx-lpage-re
+VHOST_THREADS label=end count=0
+SCHEDSTAT label=end t=1792877998.778929990 cpu2 0 0 0 0 0 0 120336735692 20462863592 855401
+SCHEDSTAT label=end t=1792877998.778929990 cpu3 0 0 0 0 0 0 43533399520 20587249931 418838
+SCHEDSTAT label=end t=1792877998.778929990 cpu4 0 0 0 0 0 0 121881366778 3637322656 654970
+SCHEDSTAT label=end t=1792877998.778929990 cpu6 0 0 0 0 0 0 97222561350 4746267545 685473
+PROC_SNAPSHOT label=end t=1792877998.778929990 name=broker pid=24967 oncpu_ns=131104692
+PROC_SNAPSHOT label=end t=1792877998.778929990 name=subscriber pid=24971 oncpu_ns=21996499
+KVMSTAT label=end exits=na halt_exits=na halt_wakeup=na halt_attempted_poll=na halt_successful_poll=na halt_poll_invalid=na halt_poll_success_ns=na halt_poll_fail_ns=na halt_wait_ns=na irq_injections=na
+CPU_SUMMARY wall_s=30.046 vcpu_s=0.929 qemu_total_s=1.010 qemu_other_s=0.081 vhost_threads=0
+CPU_BUSY cpu6=0.3% cpu2=3.1% cpu3=0.0% cpu4=0.6%
+PROC_SUMMARY broker_s=0.123 subscriber_s=0.014
+KVM_SUMMARY exits=na halt_exits=na halt_wakeup=na halt_attempted_poll=na halt_successful_poll=na halt_poll_invalid=na halt_poll_success_ns=na halt_poll_fail_ns=na halt_wait_ns=na irq_injections=na
+PERF_SUMMARY guest_cycles=654688571 guest_instr=574102417 host_cycles=900572376 host_instr=970756803 counted_s=0.861 vcpu_ghz=1.806

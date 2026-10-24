@@ -1,0 +1,8 @@
+1792879342: New connection from 192.168.150.1:38668 on port 1883.
+1792879342: New client connected from 192.168.150.1:38668 as auto-636F56F2-10C3-0927-DBDC-DDEB925696D6 (p2, c1, k60).
+1792879342: Client auto-636F56F2-10C3-0927-DBDC-DDEB925696D6 disconnected.
+1792879342: New connection from 192.168.150.1:38672 on port 1883.
+1792879342: New client connected from 192.168.150.1:38672 as sub-logger (p2, c1, k60).
+1792879351: New connection from 192.168.150.128:42560 on port 1883.
+1792879351: New client connected from 192.168.150.128:42560 as ukl-publisher (p2, c1, k400).
+1792879384: Client sub-logger disconnected.

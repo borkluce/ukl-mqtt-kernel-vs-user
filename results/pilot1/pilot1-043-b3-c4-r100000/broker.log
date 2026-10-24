@@ -1,0 +1,8 @@
+1792879914: New connection from 192.168.150.1:59934 on port 1883.
+1792879914: New client connected from 192.168.150.1:59934 as auto-731AAC50-4C1F-BDC7-3AA9-3251E52B6D83 (p2, c1, k60).
+1792879914: Client auto-731AAC50-4C1F-BDC7-3AA9-3251E52B6D83 disconnected.
+1792879914: New connection from 192.168.150.1:59938 on port 1883.
+1792879914: New client connected from 192.168.150.1:59938 as sub-logger (p2, c1, k60).
+1792879923: New connection from 192.168.150.128:49450 on port 1883.
+1792879923: New client connected from 192.168.150.128:49450 as ukl-publisher (p2, c1, k400).
+1792879956: Client sub-logger disconnected.

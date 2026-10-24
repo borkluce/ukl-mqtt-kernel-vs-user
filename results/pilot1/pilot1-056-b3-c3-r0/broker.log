@@ -1,0 +1,8 @@
+1792880534: New connection from 192.168.150.1:52816 on port 1883.
+1792880534: New client connected from 192.168.150.1:52816 as auto-6826032E-B92B-5E86-4710-0A21FBC1340F (p2, c1, k60).
+1792880534: Client auto-6826032E-B92B-5E86-4710-0A21FBC1340F disconnected.
+1792880534: New connection from 192.168.150.1:52832 on port 1883.
+1792880534: New client connected from 192.168.150.1:52832 as sub-logger (p2, c1, k60).
+1792880543: New connection from 192.168.150.128:36248 on port 1883.
+1792880543: New client connected from 192.168.150.128:36248 as ukl-publisher (p2, c1, k400).
+1792880576: Client sub-logger disconnected.

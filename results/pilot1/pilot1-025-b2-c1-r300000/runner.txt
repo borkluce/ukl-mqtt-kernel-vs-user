@@ -1,0 +1,2 @@
+n=25 block=2 config=c1 mode=user rate=300000 kernel=artifacts/upstream-default/bzImage start=2026-10-24T22:57:35+01:00
+launcher_rc=0 end=2026-10-24T22:58:18+01:00

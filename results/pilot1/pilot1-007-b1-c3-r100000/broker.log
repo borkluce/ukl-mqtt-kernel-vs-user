@@ -1,0 +1,8 @@
+1792878197: New connection from 192.168.150.1:51476 on port 1883.
+1792878197: New client connected from 192.168.150.1:51476 as auto-B355922D-38A2-6B5A-A6EC-75D31A5FAF41 (p2, c1, k60).
+1792878197: Client auto-B355922D-38A2-6B5A-A6EC-75D31A5FAF41 disconnected.
+1792878197: New connection from 192.168.150.1:51492 on port 1883.
+1792878197: New client connected from 192.168.150.1:51492 as sub-logger (p2, c1, k60).
+1792878207: New connection from 192.168.150.128:32782 on port 1883.
+1792878207: New client connected from 192.168.150.128:32782 as ukl-publisher (p2, c1, k400).
+1792878240: Client sub-logger disconnected.

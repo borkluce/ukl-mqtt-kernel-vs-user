@@ -1,0 +1,2 @@
+n=31 block=2 config=c2 mode=user rate=1000 kernel=artifacts/upstream-uklcfg/bzImage start=2026-10-24T23:02:21+01:00
+launcher_rc=0 end=2026-10-24T23:03:04+01:00

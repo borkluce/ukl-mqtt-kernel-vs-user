@@ -1,0 +1,2 @@
+n=2 block=1 config=c3 mode=user rate=1000 kernel=artifacts/ukl/vmlinuz start=2026-10-24T22:39:19+01:00
+launcher_rc=0 end=2026-10-24T22:40:01+01:00
