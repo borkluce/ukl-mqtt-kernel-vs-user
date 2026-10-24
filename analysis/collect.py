@@ -87,6 +87,8 @@ def parse_run(d):
                 r["busy_" + k] = v
         elif t[0] == "PERF_SUMMARY":
             r.update({k: v for k, v in kv(t[1:]).items()})
+        elif t[0] == "NET_SUMMARY":
+            r.update({k: v for k, v in kv(t[1:]).items()})
         elif t[0] == "PROC_SUMMARY":
             r.update({k: v for k, v in kv(t[1:]).items()})
         elif t[0] == "HOST":
@@ -106,6 +108,9 @@ def parse_run(d):
     for k in ("vcpu_s", "qemu_total_s"):
         v = num(r.get(k))
         r[k.replace("_s", "_us_per_msg")] = f"{v * 1e6 / brk:.3f}" if v is not None and brk else ""
+    tp, tb = num(r.get("guest_tx_packets")), num(r.get("guest_tx_bytes"))
+    r["msgs_per_tx_packet"] = f"{brk / tp:.2f}" if tp and brk else ""
+    r["bytes_per_tx_packet"] = f"{tb / tp:.0f}" if tp and tb is not None else ""
     gi = num(r.get("guest_instr"))
     r["guest_instr_per_msg"] = f"{gi / brk:.1f}" if gi is not None and brk else ""
     return r

@@ -24,6 +24,8 @@
 # on the clock frequency, so they separate frequency changes from changes in the work done.
 # KVM's own per-VM counters (debugfs, root only) are read at both ends of the window as well:
 # VM exits, HLT exits and halt-polling time, which is where host-side cost varies.
+# The host tap interface counters give packets and bytes sent and received by the guest in the
+# window (host rx = guest tx), so per-message packet counts can be compared across configurations.
 set -euo pipefail
 KERNEL=$1 INITRD=$2 MODE=$3 RUN_ID=$4 LOG=$5
 LOOP=${LOOP:-thesis} RATE=${RATE:-max}
@@ -105,6 +107,9 @@ snapshot() {   # $1 = start | end
   for c in $MONITOR_CPUS; do   # cpuN yld 0 sched_count sched_goidle ttwu ttwu_local rq_cpu_time_ns run_delay_ns pcount
     grep "^cpu$c " "$SCHEDSTAT_FILE" | sed "s/^/SCHEDSTAT label=$label t=$now /"
   done >> "$CPU_LOG"
+  local nd=/sys/class/net/$TAPDEV/statistics
+  [ -r "$nd/rx_packets" ] && echo "NETSTAT label=$label guest_tx_packets=$(cat $nd/rx_packets) guest_tx_bytes=$(cat $nd/rx_bytes)" \
+       "guest_rx_packets=$(cat $nd/tx_packets) guest_rx_bytes=$(cat $nd/tx_bytes)" >> "$CPU_LOG"
   local spec pname ppid sum thr on
   for spec in ${EXTRA_PIDS:-}; do
     pname=${spec%%=*} ppid=${spec#*=} sum=0
@@ -178,6 +183,12 @@ if [ $HAVE_START = 1 ] && [ $HAVE_END = 1 ]; then
          }
          END { line = "PROC_SUMMARY"; for (i = 1; i <= n; i++) line = sprintf("%s %s_s=%.3f", line, k[i], (b[k[i]] - a[k[i]]) / 1e9); print line }' "$CPU_LOG" >> "$CPU_LOG"
   fi
+  # Guest network traffic over the window, from the host tap counters.
+  awk '/^NETSTAT/ {
+         for (i = 3; i <= NF; i++) { split($i, kv, "="); if ($2 == "label=start") a[kv[1]] = kv[2]; else { b[kv[1]] = kv[2]; k[++n] = kv[1] } }
+       }
+       END { if (!n) { print "NET_SUMMARY unavailable"; exit }
+             line = "NET_SUMMARY"; for (i = 1; i <= n; i++) line = line " " k[i] "=" (b[k[i]] - a[k[i]]); print line }' "$CPU_LOG" >> "$CPU_LOG"
   # KVM per-VM counters over the window.
   awk '/^KVMSTAT/ {
          for (i = 3; i <= NF; i++) { split($i, kv, "="); if ($2 == "label=start") a[kv[1]] = kv[2]; else { b[kv[1]] = kv[2]; k[++n] = kv[1] } }
