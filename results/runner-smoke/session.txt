@@ -1,0 +1,29 @@
+session=runner-smoke seed=1792876331 reps=1 rates="0 10000" configs="c1 c4" loop=recover
+cpus vcpu=2 sibling=3 emu=6 broker=4 subscriber=8 cooldown_s=5
+date=2026-10-24T22:12:11+01:00 host_kernel=7.0.0-38-generic
+git_head=9df21596d0b18ac66b9979d94f3e03f317742ca2 git_modified_tracked_files=3
+qemu=QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)
+mosquitto=mosquitto version 2.0.18
+HOST_TUNE governor=performance epp=performance no_turbo=1 power_profile=performance halt_poll_ns=0 ac_online=1
+HOST_TUNE_CPU cpu=0 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=400331
+HOST_TUNE_CPU cpu=1 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=2000000
+HOST_TUNE_CPU cpu=10 base_khz=1500000 min_khz=1500000 max_khz=1500000 cur_khz=1500005
+HOST_TUNE_CPU cpu=11 base_khz=1500000 min_khz=1500000 max_khz=1500000 cur_khz=1500079
+HOST_TUNE_CPU cpu=2 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=2000000
+HOST_TUNE_CPU cpu=3 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=1775542
+HOST_TUNE_CPU cpu=4 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=2000000
+HOST_TUNE_CPU cpu=5 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=1996261
+HOST_TUNE_CPU cpu=6 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=2000000
+HOST_TUNE_CPU cpu=7 base_khz=2000000 min_khz=2000000 max_khz=2000000 cur_khz=2000000
+HOST_TUNE_CPU cpu=8 base_khz=1500000 min_khz=1500000 max_khz=1500000 cur_khz=1497663
+HOST_TUNE_CPU cpu=9 base_khz=1500000 min_khz=1500000 max_khz=1500000 cur_khz=1500542
+HOST_TUNE_IDLE cpu=2 enabled_states=POLL
+HOST_TUNE_IDLE cpu=4 enabled_states=POLL
+HOST_TUNE_IDLE cpu=6 enabled_states=POLL
+HOST_TUNE_CPUSET system.slice=0-1 8-11 init.scope=0-1 8-11
+7607d3496abf2f5c6047cdc93c4497553fb9a60411e8528cdccd85052e65919d  artifacts/publisher-user/mqtt-publisher
+738ba721d8f5b876d2dc682380236acfa0f05b4cd0aa1ed6d6ae1acbd792f125  artifacts/subscriber/mqtt-subscriber
+40fede0b061cf001d7b770287b711670d544c28aacb163cfcdfc9aa9e443f4b3  artifacts/ukl/vmlinuz
+07ed73ab8abc3044c6afef2359cfe7080efa545955cd7435b6970d0be55a4f33  artifacts/upstream-default/bzImage
+7e81b7d916fddbf4aecb1a00a49f8f7553785bbbf50c500411442a817185aa55  artifacts/upstream-uklcfg/bzImage
+bcb6eaa241111ffe791b6cea65a8ac575e2a89427b94afd43bcb8a38fcf8a6d0  artifacts/common-initrd.cpio.xz

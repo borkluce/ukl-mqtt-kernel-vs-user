@@ -11,6 +11,8 @@
 #             from the scheduler's run-time counters in /proc/schedstat (not the tick-sampled
 #             /proc/stat, which aliases with a guest that wakes on every host tick)
 #   PERF      1 (default) to count vCPU-thread cycles and instructions with perf, 0 to skip
+#   EXTRA_PIDS    other host processes to account in the same window, as name=pid pairs
+#             (the runner passes "broker=<pid> subscriber=<pid>")
 #
 # Host-side CPU accounting: per-thread CPU time of the QEMU process is read from /proc at the
 # start and at the end of the publisher's measurement window and written to <serial_log>.cpu.
@@ -103,6 +105,14 @@ snapshot() {   # $1 = start | end
   for c in $MONITOR_CPUS; do   # cpuN yld 0 sched_count sched_goidle ttwu ttwu_local rq_cpu_time_ns run_delay_ns pcount
     grep "^cpu$c " "$SCHEDSTAT_FILE" | sed "s/^/SCHEDSTAT label=$label t=$now /"
   done >> "$CPU_LOG"
+  local spec pname ppid sum thr on
+  for spec in ${EXTRA_PIDS:-}; do
+    pname=${spec%%=*} ppid=${spec#*=} sum=0
+    for thr in /proc/$ppid/task/*; do
+      { read -r on _ < "$thr/schedstat"; } 2>/dev/null && sum=$((sum + on))
+    done
+    echo "PROC_SNAPSHOT label=$label t=$now name=$pname pid=$ppid oncpu_ns=$sum"
+  done >> "$CPU_LOG"
   local vmdir
   for vmdir in "$KVM_DEBUGFS"/"$QPID"-*; do
     [ -d "$vmdir" ] || continue
@@ -160,6 +170,14 @@ if [ $HAVE_START = 1 ] && [ $HAVE_END = 1 ]; then
        END { line = "CPU_BUSY"; wall = w1 - w0
              for (c in seen) line = line sprintf(" %s=%.1f%%", c, wall > 0 ? 100 * (r1[c] - r0[c]) / 1e9 / wall : 0)
              print line }' "$CPU_LOG" >> "$CPU_LOG"
+  # CPU time of the extra host processes (broker, subscriber) in the window.
+  if [ -n "${EXTRA_PIDS:-}" ]; then
+    awk '/^PROC_SNAPSHOT/ {
+           for (i = 2; i <= NF; i++) { split($i, kv, "="); f[kv[1]] = kv[2] }
+           if (f["label"] == "start") a[f["name"]] = f["oncpu_ns"]; else { b[f["name"]] = f["oncpu_ns"]; k[++n] = f["name"] }
+         }
+         END { line = "PROC_SUMMARY"; for (i = 1; i <= n; i++) line = sprintf("%s %s_s=%.3f", line, k[i], (b[k[i]] - a[k[i]]) / 1e9); print line }' "$CPU_LOG" >> "$CPU_LOG"
+  fi
   # KVM per-VM counters over the window.
   awk '/^KVMSTAT/ {
          for (i = 3; i <= NF; i++) { split($i, kv, "="); if ($2 == "label=start") a[kv[1]] = kv[2]; else { b[kv[1]] = kv[2]; k[++n] = kv[1] } }

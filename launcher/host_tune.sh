@@ -26,7 +26,7 @@ HALT_POLL_NS=${HALT_POLL_NS:-0}
 SYS=/sys/devices/system/cpu
 
 status() {
-  echo "HOST_TUNE governor=$(cat $SYS/cpu2/cpufreq/scaling_governor)" \
+  echo "HOST_TUNE governor=$(cat $SYS/cpu2/cpufreq/scaling_governor 2>/dev/null || echo na)" \
        "epp=$(cat $SYS/cpu2/cpufreq/energy_performance_preference 2>/dev/null || echo na)" \
        "no_turbo=$(cat $SYS/intel_pstate/no_turbo 2>/dev/null || echo na)" \
        "power_profile=$(powerprofilesctl get 2>/dev/null || echo na)" \

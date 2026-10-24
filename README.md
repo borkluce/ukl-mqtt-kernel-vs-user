@@ -42,3 +42,19 @@ at the start and end of the publisher window, followed by `CPU_SUMMARY`, `CPU_BU
 lines (raw perf output in `<log>.perf`).
 
 Every kernel `.config`, the diffs between them and all SHA256 sums are written to `configs/` and `artifacts/`.
+
+## Measurement sessions
+
+```bash
+sudo launcher/host_tune.sh apply      # once per boot
+sudo launcher/setup_bridge.sh         # once per boot; no mosquitto running (the runner starts one per run)
+sudo systemd-inhibit --what=sleep:idle launcher/run_session.sh <session> [reps] [rates] [configs]
+```
+
+Every (configuration, rate) pair runs once per block, blocks are repeated `reps` times, and the order
+inside a block is shuffled with a recorded seed (`SEED=` to reproduce). A fresh broker is started for
+every run, so its `$SYS` counters count only that run. Before starting, the runner checks the bridge,
+`halt_poll_ns`, and the artifact hashes against `configs/artifact-sha256.txt`.
+
+Output in `results/<session>/`: `session.txt` (host settings, versions, git commit, hashes),
+`order.txt`, one directory per run, and `runs.csv` (one row per run, from `analysis/collect.py`).
